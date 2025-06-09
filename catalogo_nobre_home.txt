@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo Visual - Nobre Home</title>
+    <!-- Tailwind CSS CDN para estilização rápida e responsiva -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configuração de fontes personalizadas (Montserrat, Raleway, Inter) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Montserrat:wght@700&family=Raleway:wght@400&display=swap" rel="stylesheet">
+    <!-- Font Awesome para ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Estilos globais para o corpo e o contêiner principal */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f5ed; /* Cor de fundo suave para simular madeira clara */
+            /* Você pode substituir a cor por uma imagem de textura de madeira, como: */
+            /* background-image: url('https://placehold.co/1920x1080/f8f5ed/d6c8b9?text=Textura+Madeira'); */
+            /* background-size: cover; */
+            /* background-position: center; */
+            height: 100vh; /* Ocupa a altura total da viewport */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden; /* Evita barras de rolagem */
+        }
+        .catalog-container {
+            width: 100%;
+            max-width: 1200px;
+            height: 90vh; /* Altura do contêiner do catálogo */
+            background-color: rgba(255, 255, 255, 0.9); /* Fundo branco levemente transparente */
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* Sombra suave para profundidade */
+            border-radius: 15px; /* Bordas arredondadas */
+            overflow: hidden; /* Oculta conteúdo que ultrapassa as bordas */
+            position: relative; /* Necessário para posicionamento absoluto das seções */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Estilos para cada seção do catálogo */
+        .section {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            opacity: 0; /* Começa invisível */
+            /* Transição para "desvanecer para o lado" com "zoom-in" */
+            transform: translateX(50%) scale(0.9); /* Inicia deslocado e menor */
+            transition: opacity 1s ease-in-out, transform 1s ease-in-out; /* Transição suave */
+            padding: 2rem;
+            color: #4a4a4a; /* Cor de texto padrão */
+        }
+
+        /* Estilo para a seção ativa (visível) */
+        .section.active {
+            opacity: 1; /* Torna-se visível */
+            transform: translateX(0) scale(1); /* Desliza e aumenta para o tamanho original */
+            z-index: 10; /* Garante que a seção ativa esteja no topo */
+        }
+
+        /* Estilo para a seção saindo (opcional, para um efeito de saída) */
+        .section.exiting {
+            opacity: 0;
+            transform: translateX(-50%) scale(0.9); /* Desliza para fora e encolhe */
+            z-index: 5;
+        }
+
+        /* Definição de keyframes para animações */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideInFromRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes zoomIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Classes auxiliares para aplicar animações */
+        .animate-fade-in { animation: fadeIn 1s ease-out forwards; }
+        .animate-slide-in-right { animation: slideInFromRight 1s ease-out forwards; }
+        .animate-zoom-in { animation: zoomIn 1s ease-out forwards; }
+        .icon-bounce { animation: bounce 1s infinite; }
+
+        /* Estilos para as fontes e cores personalizadas */
+        .font-montserrat { font-family: 'Montserrat', sans-serif; }
+        .font-raleway { font-family: 'Raleway', sans-serif; }
+        .font-inter { font-family: 'Inter', sans-serif; }
+
+        /* Paleta de cores personalizada */
+        .text-caramel-light { color: #d2b48c; }
+        .text-olive-green { color: #556B2F; }
+        .text-light-gray { color: #F5F5F5; }
+        .bg-caramel-light { background-color: #f8f5ed; }
+        .bg-olive-green { background-color: #556B2F; }
+        .bg-gray-light { background-color: #F5F5F5; }
+
+        /* Estilos para imagens nas seções */
+        .section-image {
+            max-height: 200px; /* Limita a altura das imagens nos blocos da seção de madeira */
+            width: auto;
+            border-radius: 10px; /* Bordas arredondadas */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); /* Sombra para imagens */
+            cursor: pointer; /* Indica que a imagem é clicável */
+            margin-bottom: 1rem; /* Espaçamento abaixo da imagem */
+        }
+        .section-image-small {
+            max-height: 40%;
+            width: auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            cursor: pointer; /* Indica que a imagem é clicável */
+        }
+
+        /* Estilos para o Modal (Lightbox) */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7); /* Fundo escuro semi-transparente */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100; /* Garante que esteja acima de tudo */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .modal-content img {
+            max-width: 100%;
+            max-height: 70vh; /* Limita a altura da imagem no modal */
+            object-fit: contain;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            padding: 0 1rem;
+        }
+        .modal-buttons button {
+            background-color: #556B2F; /* Verde Oliva */
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .modal-buttons button:hover {
+            background-color: #435a24;
+        }
+        .modal-close-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #333;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .section h1 { font-size: 3rem; }
+            .section h2 { font-size: 2.5rem; }
+            .section p { font-size: 1rem; }
+            .section-image, .section-image-small { max-height: 45%; }
+            .catalog-container { height: 95vh; }
+            .modal-content img { max-height: 60vh; }
+            .section-image { max-height: 150px; } /* Ajuste para telas menores */
+        }
+
+        @media (max-width: 480px) {
+            .section h1 { font-size: 2.5rem; }
+            .section h2 { font-size: 2rem; }
+            .section p { font-size: 0.9rem; }
+            .section-image, .section-image-small { max-height: 40%; }
+            .catalog-container { height: 98vh; }
+            .flex-col-md-row { flex-direction: column; }
+            .modal-content img { max-height: 50vh; }
+            .section-image { max-height: 120px; } /* Ajuste para telas muito pequenas */
+        }
+    </style>
+</head>
+<body class="bg-caramel-light">
+    <div class="catalog-container rounded-lg">
+
+        <!-- Abertura – Tela Inicial -->
+        <section id="intro" class="section bg-caramel-light flex flex-col justify-center items-center rounded-lg">
+            <!-- Imagem de logo da Nobre Home, agora com arredondamento completo para imagens circulares -->
+            <img src="fotor-2025060820257.jpg" alt="Logo Nobre Home" class="mb-8 shadow-lg h-64 w-64 object-contain rounded-full">
+            <h1 class="text-6xl font-montserrat font-bold text-amber-800 mb-4">🪵 Nobre Home</h1>
+            <p class="text-2xl font-raleway text-green-700">Sua parceira em madeira tratada e imóveis no litoral paranaense</p>
+        </section>
+
+        <!-- Seção 1 – Chalés e Casas de Madeira -->
+        <section id="chalets" class="section bg-gray-100 rounded-lg">
+            <h2 class="text-4xl font-montserrat font-bold text-amber-800 mb-6">Chalé Guaratuba</h2>
+            <div class="flex flex-col md:flex-row gap-8 items-center justify-center">
+                <!-- Imagem do chalé rústico 1 -->
+                <img src="Captura de tela 2025-06-08 204247.jpg" alt="Chalé Guaratuba Imagem 1" class="section-image">
+                <!-- Imagem do chalé rústico 2 -->
+                <img src="Captura de tela 2025-06-08 204323.jpg" alt="Chalé Guaratuba Imagem 2" class="section-image">
+            </div>
+            <p class="text-xl font-raleway text-green-700 mt-8">Madeira tratada Autoclave sistema Macho e Femea estilo Cabana!</p>
+            <p class="text-xl font-raleway text-green-700">Projetos personalizados ideais para lazer, moradia ou pousadas.</p>
+            <p class="text-xl font-raleway text-green-700">Conforto moderno em harmonia com o ambiente natural.</p>
+        </section>
+
+        <!-- Seção 2 – Madeira Tratada para Construção -->
+        <section id="treated-wood" class="section bg-green-50 rounded-lg">
+            <h2 class="text-4xl font-montserrat font-bold text-amber-800 mb-6">Madeira Tratada para Construção</h2>
+            <div class="flex flex-col md:flex-row justify-center items-stretch gap-8 w-full max-w-4xl">
+
+                <!-- Bloco Madeira de Lei -->
+                <div class="flex flex-col items-center p-4 bg-white rounded-lg shadow-md flex-1">
+                    <div id="madeiraDeLeiBlock" class="relative group cursor-pointer w-full flex justify-center items-center">
+                        <img src="angelim pedra.jpg" alt="Madeira de Lei" class="section-image transition-transform duration-300 transform group-hover:scale-105">
+                        <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg">
+                            <span class="text-white text-lg font-bold">Ver Galeria</span>
+                        </div>
+                    </div>
+                    <strong class="font-bold text-2xl text-amber-800 mb-2">Madeira de Lei:</strong>
+                    <p class="text-lg font-raleway text-green-700 text-left w-full">
+                        <ul class="list-disc list-inside ml-4">
+                            <li>Grápia: Conhecida por sua alta durabilidade e resistência a intempéries, ideal para estruturas externas e decks.</li>
+                            <li>Angelim Pedra: Madeira robusta, de grande beleza e versatilidade, perfeita para telhados e esquadrias.</li>
+                        </ul>
+                    </p>
+                </div>
+
+                <!-- Bloco Pinus -->
+                <div class="flex flex-col items-center p-4 bg-white rounded-lg shadow-md flex-1">
+                    <div id="pinusAutoclavadoBlock" class="relative group cursor-pointer w-full flex justify-center items-center">
+                        <img src="Pinus autoclavado.jpg" alt="Pinus Autoclavado" class="section-image transition-transform duration-300 transform group-hover:scale-105">
+                        <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg">
+                            <span class="text-white text-lg font-bold">Ver Galeria</span>
+                        </div>
+                    </div>
+                    <strong class="font-bold text-2xl text-amber-800 mb-2">Pinus:</strong>
+                    <p class="text-lg font-raleway text-green-700 text-left w-full">
+                        <ul class="list-disc list-inside ml-4">
+                            <li>Pinus Tratado e Auto Clavado: Madeiras de reflorestamento com tratamento especial que as protege contra fungos, cupins e apodrecimento, ideal para cercas, forros e pergolados, com resistência garantida por anos.</li>
+                        </ul>
+                    </p>
+                </div>
+
+                <!-- Bloco Placas de Cimento -->
+                <div class="flex flex-col items-center p-4 bg-white rounded-lg shadow-md flex-1">
+                    <div id="placasCimentoBlock" class="relative group cursor-pointer w-full flex justify-center items-center">
+                        <img src="ppmc.png" alt="Placas Pré-moldadas de Cimento" class="section-image transition-transform duration-300 transform group-hover:scale-105">
+                        <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg">
+                            <span class="text-white text-lg font-bold">Ver Galeria</span>
+                        </div>
+                    </div>
+                    <strong class="font-bold text-2xl text-amber-800 mb-2">Placas de Cimento:</strong>
+                    <p class="text-lg font-raleway text-green-700 text-left w-full">
+                        <ul class="list-disc list-inside ml-4">
+                            <li>Placas Pré-moldadas de Cimento: Uma opção moderna e eficiente para construção rápida e durável, oferecendo excelente isolamento térmico e acústico.</li>
+                        </ul>
+                    </p>
+                </div>
+
+            </div>
+            <p class="text-xl font-raleway text-green-700 mt-6">Escolha a qualidade e a experiência da Nobre Home para o seu projeto.</p>
+        </section>
+
+        <!-- Seção 3 – Terrenos e Chácaras em Guaratuba -->
+        <section id="land-guaratuba" class="section bg-gray-100 rounded-lg">
+            <h2 class="text-4xl font-montserrat font-bold text-amber-800 mb-6">Terrenos e Chácaras em Guaratuba</h2>
+            <div class="flex flex-col md:flex-row gap-8 items-center justify-center">
+                <!-- Imagem de terreno amplo placeholder -->
+                <img src="https://placehold.co/600x400/6B8E23/FFFFFF?text=Terreno+Amplo+Guaratuba" alt="Terreno Amplo" class="section-image">
+                <!-- Imagem de vista interna placeholder -->
+                <img src="https://placehold.co/600x400/8B4513/FFFFFF?text=Ch%C3%A1cara+%C3%81rea+Verde" alt="Vista Aérea de Chácara" class="section-image">
+            </div>
+            <!-- Detalhes atualizados para Chácaras Especiais -->
+            <p class="text-xl font-raleway text-green-700 mt-8 text-left w-full max-w-lg">
+                <strong class="font-bold">Chácaras especiais:</strong>
+                <ul class="list-disc list-inside ml-4">
+                    <li>Áreas a partir de 2.000m²</li>
+                    <li>Ideal para lazer, agricultura ou construção de pousadas</li>
+                    <li>Situadas em áreas nobres próximas às praias e às áreas de preservação ambiental</li>
+                </ul>
+            </p>
+            <!-- Detalhes atualizados para Terrenos Residenciais e Comerciais -->
+            <p class="text-xl font-raleway text-green-700 mb-6 text-left w-full max-w-lg">
+                <strong class="font-bold">Terrenos residenciais e comerciais:</strong>
+                <ul class="list-disc list-inside ml-4">
+                    <li>Tamanhos variados, de 300m² a 1.500m²</li>
+                    <li>Localizações estratégicas, próximas ao centro de Guaratuba, às praias e ao acesso às rodovias</li>
+                </ul>
+            </p>
+
+            <!-- Gemini API Integration for Property Ideas -->
+            <div class="mt-8 p-4 bg-white rounded-lg shadow-md w-full max-w-lg">
+                <h3 class="text-2xl font-montserrat font-bold text-amber-800 mb-4">✨ Gerar Ideias de Propriedade</h3>
+                <input type="text" id="propertyIdeaInput" placeholder="Ex: Chácara para família grande" class="w-full p-3 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-olive-green">
+                <button id="generatePropertyIdeaBtn" class="bg-olive-green text-white px-6 py-3 rounded-lg shadow-md hover:bg-green-700 transition duration-300 ease-in-out">
+                    Gerar Ideias ✨
+                </button>
+                <div id="propertyIdeaOutput" class="mt-4 p-4 bg-gray-50 rounded-lg text-gray-800 text-left min-h-[80px] flex items-center justify-center">
+                    <p>As ideias de propriedade aparecerão aqui.</p>
+                </div>
+                <div id="propertyIdeaLoading" class="hidden text-center mt-2 text-olive-green">Carregando...</div>
+            </div>
+        </section>
+
+        <!-- Encerramento – Contato -->
+        <section id="contact" class="section bg-caramel-light rounded-lg">
+            <h2 class="text-4xl font-montserrat font-bold text-amber-800 mb-6">Entre em Contato!</h2>
+            <div class="flex flex-col gap-4 text-3xl font-raleway text-green-700 mb-8">
+                <p><i class="fas fa-phone-alt mr-4 text-olive-green"></i>(41) 98901-7114 / 98409-1991</p>
+                <p><i class="fab fa-whatsapp mr-4 text-green-600"></i>Atendimento direto via WhatsApp</p>
+                <p>Aceitamos veículos como parte de pagamento.</p>
+            </div>
+            <p class="text-4xl font-montserrat font-bold text-amber-800">"Realize seu sonho com a Nobre Home."</p>
+
+            <!-- Gemini API Integration for Personalized Contact Message -->
+            <div class="mt-8 p-4 bg-white rounded-lg shadow-md w-full max-w-lg">
+                <h3 class="text-2xl font-montserrat font-bold text-amber-800 mb-4">✨ Gerar Mensagem de Contato</h3>
+                <textarea id="contactMessageInput" placeholder="Descreva suas necessidades (Ex: Quero construir um chalé para aluguel de temporada)." rows="4" class="w-full p-3 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-olive-green"></textarea>
+                <button id="generateContactMessageBtn" class="bg-olive-green text-white px-6 py-3 rounded-lg shadow-md hover:bg-green-700 transition duration-300 ease-in-out">
+                    Gerar Mensagem ✨
+                </button>
+                <!-- O output agora é transitório e redireciona direto para o WhatsApp -->
+                <div id="contactMessageOutput" class="mt-4 p-4 bg-gray-50 rounded-lg text-gray-800 text-center min-h-[50px] flex items-center justify-center">
+                    <p>Descreva suas necessidades e gere uma mensagem automática para o WhatsApp.</p>
+                </div>
+                <div id="contactMessageLoading" class="hidden text-center mt-2 text-olive-green">Carregando...</div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Modal (Lightbox) para a Galeria de Pinus Autoclavado -->
+    <div id="galleryModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button class="modal-close-button" id="closeGalleryBtn">&times;</button>
+            <img id="modalImage" src="" alt="Imagem da Galeria">
+            <div class="modal-buttons">
+                <button id="prevGalleryBtn"><i class="fas fa-chevron-left"></i> Anterior</button>
+                <button id="nextGalleryBtn">Próximo <i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Seleciona todas as seções do catálogo
+        const sections = document.querySelectorAll('.section');
+        let currentSectionIndex = 0; // Índice da seção atual
+        const sectionDuration = 15000; // Duração de exibição de cada seção (15 segundos)
+
+        // Elementos para a funcionalidade de "Gerar Ideias de Propriedade"
+        const propertyIdeaInput = document.getElementById('propertyIdeaInput');
+        const generatePropertyIdeaBtn = document.getElementById('generatePropertyIdeaBtn');
+        const propertyIdeaOutput = document.getElementById('propertyIdeaOutput');
+        const propertyIdeaLoading = document.getElementById('propertyIdeaLoading');
+
+        // Elementos para a funcionalidade de "Gerar Mensagem de Contato"
+        const contactMessageInput = document.getElementById('contactMessageInput');
+        const generateContactMessageBtn = document.getElementById('generateContactMessageBtn');
+        const contactMessageOutput = document.getElementById('contactMessageOutput');
+        const contactMessageLoading = document.getElementById('contactMessageLoading');
+
+        const whatsappPhoneNumber = "5541989017114"; // Número de telefone para o WhatsApp
+
+        // Elementos do Modal da Galeria
+        const galleryModal = document.getElementById('galleryModal');
+        const closeGalleryBtn = document.getElementById('closeGalleryBtn');
+        const modalImage = document.getElementById('modalImage');
+        const prevGalleryBtn = document.getElementById('prevGalleryBtn');
+        const nextGalleryBtn = document.getElementById('nextGalleryBtn');
+
+        let currentGalleryImages = []; // Array que armazenará as imagens da galeria atual
+        let currentGalleryImageIndex = 0; // Índice da imagem atual na galeria
+
+        // Arrays de imagens para as galerias
+        const pinusGalleryImages = [
+            "Pinus autoclavado.jpg",
+            "Captura de tela 2025-06-08 204247.jpg",
+            "casa pinus auto clavado.png"
+        ];
+        const madeiraDeLeiGalleryImages = [
+            "angelim pedra.jpg",
+            "casa anp.jpg",
+            "casa ap.jpg"
+        ];
+        const placasCimentoGalleryImages = [
+            "ppmc.png",
+            "ppmc1.jpg",
+            "ppmc2.png"
+        ];
+
+        /**
+         * Exibe uma seção específica do catálogo, aplicando as animações.
+         * @param {number} index O índice da seção a ser exibida.
+         */
+        function showSection(index) {
+            // Primeiro, oculta todas as seções e remove classes de animação anteriores
+            sections.forEach(section => {
+                section.classList.remove('active', 'exiting', 'animate-slide-in-right', 'animate-fade-in', 'animate-zoom-in');
+                // Remove a propriedade animation do estilo inline para re-trigar animações
+                const animatedElements = section.querySelectorAll('[class*="animate-"]');
+                animatedElements.forEach(el => {
+                    el.style.animation = 'none';
+                    el.offsetHeight; /* Força o reflow para reiniciar a animação */
+                    el.style.animation = null; /* Remove a propriedade para que a classe CSS seja aplicada */
+                });
+            });
+
+            // Ativa a seção atual e aplica a animação de entrada principal
+            const currentSection = sections[index];
+            currentSection.classList.add('active');
+
+            // Aplica animações específicas para os elementos dentro da seção ativa
+            if (currentSection.id === 'intro') {
+                // Animações para a seção de introdução
+                currentSection.querySelector('h1').classList.add('animate-fade-in');
+                currentSection.querySelector('p').classList.add('animate-fade-in');
+                currentSection.querySelector('p').style.animationDelay = '0.1s'; // Pequeno delay
+            } else if (currentSection.id === 'chalets' || currentSection.id === 'land-guaratuba') {
+                // Animações para seções com duas imagens grandes
+                currentSection.querySelectorAll('.section-image').forEach((img, i) => {
+                    img.classList.add('animate-slide-in-right');
+                    img.style.animationDelay = `${i * 0.2}s`; // Delay escalonado para as imagens
+                });
+                currentSection.querySelectorAll('p').forEach((p, i) => {
+                    p.classList.add('animate-fade-in');
+                    p.style.animationDelay = `${0.4 + i * 0.1}s`; // Delay escalonado para os parágrafos
+                });
+            } else if (currentSection.id === 'treated-wood') {
+                // Animações para seção com imagens e texto
+                currentSection.querySelectorAll('.section-image, .text-xl, .list-disc').forEach((el, i) => {
+                    el.classList.add('animate-fade-in');
+                    el.style.animationDelay = `${i * 0.05}s`; // Delay escalonado para elementos
+                });
+            } else if (currentSection.id === 'contact') {
+                // Animações para a seção de contato
+                currentSection.querySelectorAll('p, h3, textarea, button').forEach((el, i) => {
+                    el.classList.add('animate-fade-in');
+                    el.style.animationDelay = `${0.1 + i * 0.05}s`;
+                });
+                currentSection.querySelectorAll('.fa-phone-alt, .fa-whatsapp').forEach(icon => {
+                    icon.classList.add('icon-bounce'); // Animação de pulo para ícones
+                });
+            }
+        }
+
+        /**
+         * Avança para a próxima seção do catálogo.
+         */
+        function nextSection() {
+            currentSectionIndex = (currentSectionIndex + 1) % sections.length; // Avança o índice, voltando ao início se chegar ao fim
+            showSection(currentSectionIndex); // Exibe a próxima seção
+        }
+
+        // --- Funções para o Modal da Galeria ---
+        function openGalleryModal(images, startIndex = 0) {
+            currentGalleryImages = images;
+            currentGalleryImageIndex = startIndex;
+            modalImage.src = currentGalleryImages[currentGalleryImageIndex];
+            galleryModal.classList.add('show');
+        }
+
+        function closeGalleryModal() {
+            galleryModal.classList.remove('show');
+        }
+
+        function showNextGalleryImage() {
+            currentGalleryImageIndex = (currentGalleryImageIndex + 1) % currentGalleryImages.length;
+            modalImage.src = currentGalleryImages[currentGalleryImageIndex];
+        }
+
+        function showPrevGalleryImage() {
+            currentGalleryImageIndex = (currentGalleryImageIndex - 1 + currentGalleryImages.length) % currentGalleryImages.length;
+            modalImage.src = currentGalleryImages[currentGalleryImageIndex];
+        }
+
+        // --- Event Listeners ---
+
+        // Adiciona event listener para o bloco de Pinus Autoclavado para abrir a galeria
+        document.getElementById('pinusAutoclavadoBlock').addEventListener('click', () => openGalleryModal(pinusGalleryImages, 0));
+
+        // Adiciona event listener para o bloco de Madeira de Lei para abrir a galeria
+        document.getElementById('madeiraDeLeiBlock').addEventListener('click', () => openGalleryModal(madeiraDeLeiGalleryImages, 0));
+
+        // Adiciona event listener para o bloco de Placas Pré-moldadas de Cimento para abrir a galeria
+        document.getElementById('placasCimentoBlock').addEventListener('click', () => openGalleryModal(placasCimentoGalleryImages, 0));
+
+        // Event listeners para os botões do modal da galeria
+        closeGalleryBtn.addEventListener('click', closeGalleryModal);
+        nextGalleryBtn.addEventListener('click', showNextGalleryImage);
+        prevGalleryBtn.addEventListener('click', showPrevGalleryImage);
+
+        // Fecha o modal se clicar fora do conteúdo da imagem
+        galleryModal.addEventListener('click', (e) => {
+            if (e.target === galleryModal) {
+                closeGalleryModal();
+            }
+        });
+
+        // Adiciona event listener para o botão de gerar ideias de propriedade
+        generatePropertyIdeaBtn.addEventListener('click', async () => {
+            const propertyDescription = propertyIdeaInput.value.trim();
+            if (!propertyDescription) {
+                propertyIdeaOutput.innerHTML = '<p class="text-red-500">Por favor, digite uma descrição para gerar ideias.</p>';
+                return;
+            }
+
+            propertyIdeaLoading.classList.remove('hidden'); // Mostra o indicador de carregamento
+            propertyIdeaOutput.innerHTML = '<p>Gerando ideias...</p>'; // Mensagem provisória
+
+            try {
+                let chatHistory = [];
+                const prompt = `Gerar 3-5 ideias de uso e/ou marketing para uma propriedade em Guaratuba-PR, considerando a descrição: "${propertyDescription}". Foco em lazer, investimento e harmonia com o ambiente natural.`;
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                const payload = { contents: chatHistory };
+                const apiKey = ""; // API key will be provided by Canvas runtime
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    propertyIdeaOutput.innerHTML = `<p>${text}</p>`;
+                } else {
+                    propertyIdeaOutput.innerHTML = '<p class="text-red-500">Não foi possível gerar ideias. Tente novamente.</p>';
+                }
+            } catch (error) {
+                console.error('Erro ao chamar a API Gemini para ideias de propriedade:', error);
+                propertyIdeaOutput.innerHTML = '<p class="text-red-500">Ocorreu um erro ao gerar ideias. Verifique sua conexão.</p>';
+            } finally {
+                propertyIdeaLoading.classList.add('hidden'); // Esconde o indicador de carregamento
+            }
+        });
+
+        // Adiciona event listener para o botão de gerar mensagem de contato
+        generateContactMessageBtn.addEventListener('click', async () => {
+            const userNeeds = contactMessageInput.value.trim();
+            if (!userNeeds) {
+                contactMessageOutput.innerHTML = '<p class="text-red-500">Por favor, descreva suas necessidades para gerar a mensagem.</p>';
+                return;
+            }
+
+            contactMessageLoading.classList.remove('hidden'); // Mostra o indicador de carregamento
+            contactMessageOutput.innerHTML = '<p>Gerando mensagem... Redirecionando para o WhatsApp!</p>'; // Mensagem provisória de redirecionamento
+
+            try {
+                let chatHistory = [];
+                const prompt = `Gere uma mensagem de contato profissional e acolhedora para a Nobre Home (especializada em madeira tratada e imóveis no litoral paranaense). A mensagem deve ser baseada nas seguintes necessidades do cliente: "${userNeeds}". Inclua uma saudação e uma chamada para ação para agendar uma conversa.`;
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                const payload = { contents: chatHistory };
+                const apiKey = ""; // API key will be provided by Canvas runtime
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    const encodedMessage = encodeURIComponent(text); // Codifica a mensagem para URL
+                    const whatsappLink = `https://wa.me/${whatsappPhoneNumber}?text=${encodedMessage}`;
+                    window.open(whatsappLink, '_blank'); // Abre o link em uma nova aba
+
+                    // Clear input after successful generation and redirection
+                    contactMessageInput.value = '';
+                } else {
+                    contactMessageOutput.innerHTML = '<p class="text-red-500">Não foi possível gerar a mensagem. Tente novamente.</p>';
+                }
+            } catch (error) {
+                console.error('Erro ao chamar a API Gemini para mensagem de contato:', error);
+                contactMessageOutput.innerHTML = '<p class="text-red-500">Ocorreu um erro ao gerar a mensagem. Verifique sua conexão.</p>';
+            } finally {
+                contactMessageLoading.classList.add('hidden'); // Esconde o indicador de carregamento
+            }
+        });
+
+        // Inicia o catálogo visual quando a página é totalmente carregada
+        window.onload = function() {
+            showSection(currentSectionIndex); // Exibe a primeira seção imediatamente
+            setInterval(nextSection, sectionDuration); // Configura o avanço automático das seções
+        };
+    </script>
+</body>
+</html>
